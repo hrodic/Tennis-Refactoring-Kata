@@ -1,12 +1,13 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Tests;
 
 use TennisGame\TennisGame6;
 
-class TennisGame6Test extends TestMaster {
-
+class TennisGame6Test extends TestMaster
+{
     protected function setUp(): void
     {
         parent::setUp();
