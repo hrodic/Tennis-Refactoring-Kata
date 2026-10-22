@@ -1,0 +1,7 @@
+(ns tennis.main
+  (:require tennis.game1 :as g))
+
+(defn main []
+  )
+
+(main)
