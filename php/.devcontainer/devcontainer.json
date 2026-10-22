@@ -6,7 +6,7 @@
       "extensions": [
         "bmewburn.vscode-intelephense-client",
         "ryanluker.vscode-coverage-gutters",
-        "calebporzio.better-phpunit"
+        "emallin.phpunit"
       ],
       "settings": {
         "intelephense.telemetry.enabled": false,
@@ -14,7 +14,7 @@
         "editor.codeActionsOnSave": {
           "source.organizeImports": "explicit"
         },
-        "better-phpunit.command": "vendor/bin/phpunit"
+        "phpunit.phpunit": "vendor/bin/phpunit"
       }
     }
   },
