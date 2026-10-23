@@ -13,8 +13,7 @@ class TennisGame1 implements TennisGame
     public function __construct(
         private string $player1Name,
         private string $player2Name
-    ) {
-    }
+    ) {}
 
     public function wonPoint(string $playerName): void
     {
@@ -39,44 +38,20 @@ class TennisGame1 implements TennisGame
 
         // branch 2: if the score is not equal and either player has 4 or more points
         if ($this->m_score1 >= 4 || $this->m_score2 >= 4) {
-            $minusResult = $this->m_score1 - $this->m_score2;
-            $score = '';
-            if ($minusResult === 1) {
-                $score = 'Advantage player1';
-            } elseif ($minusResult === -1) {
-                $score = 'Advantage player2';
-            } elseif ($minusResult >= 2) {
-                $score = 'Win for player1';
-            } else {
-                $score = 'Win for player2';
-            }
-            return $score;
+            $advantagePlayer = $this->m_score1 > $this->m_score2 ? 'player1' : 'player2';
+            $advantageDifference = abs($this->m_score1 - $this->m_score2);
+            return $advantageDifference === 1 ? "Advantage {$advantagePlayer}" : "Win for {$advantagePlayer}";
         }
 
         // branch 3: if the score is not equal and both players have less than 4 points
-        $score = '';
-        for ($i = 1; $i < 3; $i++) {
-            if ($i === 1) {
-                $tempScore = $this->m_score1;
-            } else {
-                $score .= '-';
-                $tempScore = $this->m_score2;
-            }
-            switch ($tempScore) {
-                case 0:
-                    $score .= 'Love';
-                    break;
-                case 1:
-                    $score .= 'Fifteen';
-                    break;
-                case 2:
-                    $score .= 'Thirty';
-                    break;
-                case 3:
-                    $score .= 'Forty';
-                    break;
-            }
-        }
-        return $score;
+        $scoreWordMap = [
+            0 => 'Love',
+            1 => 'Fifteen',
+            2 => 'Thirty',
+            3 => 'Forty',
+        ];
+        $score1Word = $scoreWordMap[$this->m_score1];
+        $score2Word = $scoreWordMap[$this->m_score2];
+        return "{$score1Word}-{$score2Word}";
     }
 }
