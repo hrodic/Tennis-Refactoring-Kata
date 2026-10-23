@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace TennisGame;
 
+use InvalidArgumentException;
+
 final class TennisGame1 implements TennisGame
 {
     private const array SCORE_WORDS = [
@@ -13,24 +15,27 @@ final class TennisGame1 implements TennisGame
         3 => 'Forty',
     ];
 
-    private const ALL_WORD = 'All';
+    private const string ALL_WORD = 'All';
 
-    private const DEUCE_WORD = 'Deuce';
+    private const string DEUCE_WORD = 'Deuce';
 
-    private const ADVANTAGE_WORD = 'Advantage';
+    private const string ADVANTAGE_WORD = 'Advantage';
 
-    private const WIN_WORD = 'Win for';
+    private const string WIN_WORD = 'Win for';
 
-    private const WINNING_THRESHOLD = 4;
+    private const int WINNING_THRESHOLD = 4;
 
     private int $score1 = 0;
 
     private int $score2 = 0;
 
     public function __construct(
-        private string $player1Name,
-        private string $player2Name
+        private readonly string $player1Name,
+        private readonly string $player2Name
     ) {
+        if ($this->player1Name === $this->player2Name) {
+            throw new InvalidArgumentException('Player names must be distinct.');
+        }
     }
 
     public function wonPoint(string $playerName): void
@@ -45,23 +50,20 @@ final class TennisGame1 implements TennisGame
             return;
         }
 
-        throw new \InvalidArgumentException("Invalid player name: {$playerName}");
+        throw new InvalidArgumentException("Invalid player name: {$playerName}");
     }
 
     public function getScore(): string
     {
-        //branch 1: if the score is equal
         if ($this->isTied()) {
             return $this->formatTiedScore();
         }
 
-        // branch 2: if the score is not equal and both players have less than 4 points
-        if ($this->isBeforeWinningThreshold()) {
-            return $this->formatScore();
+        if ($this->isEndgame()) {
+            return $this->formatAdvantageOrWin();
         }
 
-        // branch 3: if the score is not equal and at least one player has 4 or more points
-        return $this->formatWinningScore();
+        return $this->formatScore();
     }
 
     private function isTied(): bool
@@ -69,23 +71,28 @@ final class TennisGame1 implements TennisGame
         return $this->score1 === $this->score2;
     }
 
-    private function isBeforeWinningThreshold(): bool
+    private function isEndgame(): bool
     {
-        return $this->score1 < self::WINNING_THRESHOLD && $this->score2 < self::WINNING_THRESHOLD;
+        return $this->score1 >= self::WINNING_THRESHOLD
+            || $this->score2 >= self::WINNING_THRESHOLD;
     }
 
     private function formatScore(): string
     {
-        $score1Word = self::SCORE_WORDS[$this->score1];
-        $score2Word = self::SCORE_WORDS[$this->score2];
+        $score1Word = self::SCORE_WORDS[$this->score1] ?? throw new InvalidArgumentException("Invalid score for player 1: {$this->score1}");
+        $score2Word = self::SCORE_WORDS[$this->score2] ?? throw new InvalidArgumentException("Invalid score for player 2: {$this->score2}");
+
         return "{$score1Word}-{$score2Word}";
     }
 
-    private function formatWinningScore(): string
+    private function formatAdvantageOrWin(): string
     {
-        $advantagePlayer = $this->score1 > $this->score2 ? $this->player1Name : $this->player2Name;
-        $advantageDifference = abs($this->score1 - $this->score2);
-        return $advantageDifference === 1 ? self::ADVANTAGE_WORD . " {$advantagePlayer}" : self::WIN_WORD . " {$advantagePlayer}";
+        $leader = $this->score1 > $this->score2 ? $this->player1Name : $this->player2Name;
+        $difference = abs($this->score1 - $this->score2);
+
+        return $difference === 1
+            ? self::ADVANTAGE_WORD . " {$leader}"
+            : self::WIN_WORD . " {$leader}";
     }
 
     private function formatTiedScore(): string
