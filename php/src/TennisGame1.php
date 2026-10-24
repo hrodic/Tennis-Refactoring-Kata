@@ -4,72 +4,102 @@ declare(strict_types=1);
 
 namespace TennisGame;
 
-class TennisGame1 implements TennisGame
-{
-    private int $m_score1 = 0;
+use InvalidArgumentException;
 
-    private int $m_score2 = 0;
+final class TennisGame1 implements TennisGame
+{
+    private const array SCORE_WORDS = [
+        0 => 'Love',
+        1 => 'Fifteen',
+        2 => 'Thirty',
+        3 => 'Forty',
+    ];
+
+    private const string ALL_WORD = 'All';
+
+    private const string DEUCE_WORD = 'Deuce';
+
+    private const string ADVANTAGE_WORD = 'Advantage';
+
+    private const string WIN_WORD = 'Win for';
+
+    private const int WINNING_THRESHOLD = 4;
+
+    private int $score1 = 0;
+
+    private int $score2 = 0;
 
     public function __construct(
-        private string $player1Name,
-        private string $player2Name
+        private readonly string $player1Name,
+        private readonly string $player2Name
     ) {
+        if ($this->player1Name === $this->player2Name) {
+            throw new InvalidArgumentException('Player names must be distinct.');
+        }
     }
 
     public function wonPoint(string $playerName): void
     {
-        if ($playerName === 'player1') {
-            $this->m_score1++;
-        } else {
-            $this->m_score2++;
+        if ($playerName === $this->player1Name) {
+            $this->score1++;
+            return;
         }
+
+        if ($playerName === $this->player2Name) {
+            $this->score2++;
+            return;
+        }
+
+        throw new InvalidArgumentException("Invalid player name: {$playerName}");
     }
 
     public function getScore(): string
     {
-        $score = '';
-        if ($this->m_score1 === $this->m_score2) {
-            $score = match ($this->m_score1) {
-                0 => 'Love-All',
-                1 => 'Fifteen-All',
-                2 => 'Thirty-All',
-                default => 'Deuce',
-            };
-        } elseif ($this->m_score1 >= 4 || $this->m_score2 >= 4) {
-            $minusResult = $this->m_score1 - $this->m_score2;
-            if ($minusResult === 1) {
-                $score = 'Advantage player1';
-            } elseif ($minusResult === -1) {
-                $score = 'Advantage player2';
-            } elseif ($minusResult >= 2) {
-                $score = 'Win for player1';
-            } else {
-                $score = 'Win for player2';
-            }
-        } else {
-            for ($i = 1; $i < 3; $i++) {
-                if ($i === 1) {
-                    $tempScore = $this->m_score1;
-                } else {
-                    $score .= '-';
-                    $tempScore = $this->m_score2;
-                }
-                switch ($tempScore) {
-                    case 0:
-                        $score .= 'Love';
-                        break;
-                    case 1:
-                        $score .= 'Fifteen';
-                        break;
-                    case 2:
-                        $score .= 'Thirty';
-                        break;
-                    case 3:
-                        $score .= 'Forty';
-                        break;
-                }
-            }
+        if ($this->isTied()) {
+            return $this->formatTiedScore();
         }
-        return $score;
+
+        if ($this->isEndgame()) {
+            return $this->formatAdvantageOrWin();
+        }
+
+        return $this->formatScore();
+    }
+
+    private function isTied(): bool
+    {
+        return $this->score1 === $this->score2;
+    }
+
+    private function isEndgame(): bool
+    {
+        return $this->score1 >= self::WINNING_THRESHOLD
+            || $this->score2 >= self::WINNING_THRESHOLD;
+    }
+
+    private function formatScore(): string
+    {
+        $score1Word = self::SCORE_WORDS[$this->score1] ?? throw new InvalidArgumentException("Invalid score for player 1: {$this->score1}");
+        $score2Word = self::SCORE_WORDS[$this->score2] ?? throw new InvalidArgumentException("Invalid score for player 2: {$this->score2}");
+
+        return "{$score1Word}-{$score2Word}";
+    }
+
+    private function formatAdvantageOrWin(): string
+    {
+        $leader = $this->score1 > $this->score2 ? $this->player1Name : $this->player2Name;
+        $difference = abs($this->score1 - $this->score2);
+
+        return $difference === 1
+            ? self::ADVANTAGE_WORD . " {$leader}"
+            : self::WIN_WORD . " {$leader}";
+    }
+
+    private function formatTiedScore(): string
+    {
+        return match ($this->score1) {
+            0, 1, 2 => self::SCORE_WORDS[$this->score1] . '-' . self::ALL_WORD,
+            default => self::DEUCE_WORD,
+        };
     }
 }

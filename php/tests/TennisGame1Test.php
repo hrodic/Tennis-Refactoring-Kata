@@ -28,4 +28,16 @@ class TennisGame1Test extends TestMaster
         $this->seedScores($score1, $score2);
         $this->assertSame($expectedResult, $this->game->getScore());
     }
+
+    public function testInvalidPlayerName(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->game->wonPoint('invalid_player');
+    }
+
+    public function testDuplicatePlayerNames(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        new TennisGame1('player1', 'player1');
+    }
 }
